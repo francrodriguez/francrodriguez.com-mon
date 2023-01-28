@@ -1,8 +1,8 @@
 /**
  * # DigitalOcean Project
  */
-resource "digitalocean_project" "francrordriguezcom-infra" {
-  name        = "francrodriguezcom-infra"
+resource "digitalocean_project" "francrordriguezcom-mon" {
+  name        = "francrodriguezcom-mon"
   description = "Infra para monitor.francrodriguez.com"
   purpose     = "monitoring"
   environment = "production"
@@ -13,8 +13,8 @@ resource "digitalocean_project" "francrordriguezcom-infra" {
 * # key a usar
 */
 
-data "digitalocean_ssh_key" "one" {
-  name = "one"
+data "digitalocean_ssh_key" "terraform" {
+  name = "terraform"
 }
 
 /**
@@ -30,9 +30,6 @@ resource "digitalocean_droplet" "node" {
   vpc_uuid = "71bbce96-523f-4db9-b06e-f5fff6939df7"
   ssh_keys = [data.digitalocean_ssh_key.one.id]
 
-  output "nodes_ip" {
-    value = digitalocean_droplet.node.0.ipv4_address
-  }
 
   provisioner "remote-exec" {
     inline = ["sudo apt update", "sudo apt install -y python3"]
@@ -41,12 +38,16 @@ resource "digitalocean_droplet" "node" {
       host        = self.ipv4_address
       type        = "ssh"
       user        = "root"
-      private_key = file(var.pvt_key)
+      private_key = var.priv_key
     }
   }
 
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key ${var.pvt_key} -e 'pub_key=${var.pub_key}' ansible/deploy-monitor.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key var.priv_key -e 'pub_key=var.pub_key' ansible/deploy-monitor.yml"
+
+}
+  output "nodes_ip" {
+    value = digitalocean_droplet.node.0.ipv4_address
   }
 }
 

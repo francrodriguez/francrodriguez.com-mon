@@ -38,11 +38,12 @@ resource "digitalocean_droplet" "node" {
       host        = self.ipv4_address
       type        = "ssh"
       user        = "root"
+      private_key = "${var.priv_key}"
     }
   }
 
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key self.priv_key -e 'pub_key=self.pub_key' ansible/deploy-monitor.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key "${var.priv_key}"  -e 'pub_key="${var.pub_key}"' ansible/deploy-monitor.yml"
   }
 }
 

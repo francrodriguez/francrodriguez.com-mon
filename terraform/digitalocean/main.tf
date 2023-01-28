@@ -28,7 +28,7 @@ resource "digitalocean_droplet" "node" {
   region   = "fra1"
   size     = "s-1vcpu-1gb"
   vpc_uuid = "71bbce96-523f-4db9-b06e-f5fff6939df7"
-  ssh_keys = [data.digitalocean_ssh_key.one.id]
+  ssh_keys = [data.digitalocean_ssh_key.terraform.id]
 
 
   provisioner "remote-exec" {
@@ -38,16 +38,11 @@ resource "digitalocean_droplet" "node" {
       host        = self.ipv4_address
       type        = "ssh"
       user        = "root"
-      private_key = var.priv_key
     }
   }
 
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key var.priv_key -e 'pub_key=var.pub_key' ansible/deploy-monitor.yml"
-
-}
-  output "nodes_ip" {
-    value = digitalocean_droplet.node.0.ipv4_address
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key self.priv_key -e 'pub_key=self.pub_key' ansible/deploy-monitor.yml"
   }
 }
 

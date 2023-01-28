@@ -1,0 +1,38 @@
+version: "3.0"
+networks:
+  loki:
+services: 
+  grafana:
+      image: grafana/grafana:latest
+      user: "1000"
+      ports:
+        - 3000:3000
+      restart: unless-stopped
+      environment:
+        - VIRTUAL_HOST=monitor.francrodriguez.com # adjust to match your domain name
+          #- VIRTUAL_PROTO=https
+        - VIRTUAL_PORT=3000
+          #- GF_SERVER_PROTOCOL=https
+        - GF_SERVER_DOMAIN=monitor.francrodriguez.com
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=password_change_me
+          #- GF_SERVER_CERT_FILE=/var/ssl/server.crt
+          #- GF_SERVER_CERT_KEY=/var/ssl/server.key
+      volumes:
+        - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+        - ./data:/var/lib/grafana
+          #- ./ssl/martimotos.key:/var/ssl/server.key
+          #- ./ssl/martimotos.crt:/var/ssl/server.crt
+      networks:
+        - loki
+  loki:
+      image: grafana/loki:2.6.0
+      volumes:
+        - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      ports:
+        - "3100:3100"
+      expose:
+        - 3100
+      command: -config.file=/etc/loki/loki-config.yaml
+      networks:
+        - loki

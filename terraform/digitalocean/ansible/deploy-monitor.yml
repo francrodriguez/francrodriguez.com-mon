@@ -1,0 +1,31 @@
+---
+- become: yes
+  hosts: all
+  name: deploy-monitor
+
+tasks:
+  - name: Create user
+    user:
+      name: franc
+      group: sudo
+  - name: Add ssh key
+    authorized_key:
+      user: franc
+      state: present
+      key: "{{ lookup('file', pub_key) }}"
+  - name: clone git repo
+    ansible.builtin.git:
+      repo: git@github.com:francrodriguez/francrodriguez.com-mon.git
+      dest: /home/franc
+      single_branch: yes
+      version: main
+  - name: deploy docker compose grafana
+    community.docker.docker_compose:
+      project_src: /home/franc/francrodriguez.com-mon/grafana
+      files:
+      - docker-compose.yml
+  - name: deploy docker compose prometheus
+    community.docker.docker_compose:
+      project_src: /home/franc/francrodriguez.com-mon/prometheus
+      files:
+      - docker-compose.yml

@@ -40,5 +40,5 @@ resource "digitalocean_record" "www" {
   domain = "francrodriguez.com"
   type   = "A"
   name   = "monitor"
-  value  = digitalocean_droplet.node.monitor.ipv4_address
+  value  = digitalocean_droplet.node.0.ipv4_address
 }

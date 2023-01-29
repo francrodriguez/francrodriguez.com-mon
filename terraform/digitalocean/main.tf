@@ -13,8 +13,8 @@ resource "digitalocean_project" "francrordriguezcom-mon" {
 * # key a usar
 */
 
-data "digitalocean_ssh_key" "terraform" {
-  name = "terraform"
+data "digitalocean_ssh_key" "one" {
+  name = "one"
 }
 
 /**
@@ -22,29 +22,13 @@ data "digitalocean_ssh_key" "terraform" {
  */
 
 resource "digitalocean_droplet" "node" {
-  count    = var.node_count
   image    = "docker-20-04"
-  name     = "node${count.index}"
+  name     = "monitor"
   region   = "fra1"
   size     = "s-1vcpu-1gb"
   vpc_uuid = "71bbce96-523f-4db9-b06e-f5fff6939df7"
-  ssh_keys = [data.digitalocean_ssh_key.terraform.id]
+  ssh_keys = [data.digitalocean_ssh_key.one.id]
 
-
-  provisioner "remote-exec" {
-    inline = ["sudo apt update", "sudo apt install -y python3"]
-
-    connection {
-      host        = self.ipv4_address
-      type        = "ssh"
-      user        = "root"
-      private_key = "${var.priv_key}"
-    }
-  }
-
-  provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i '${self.ipv4_address},' --private-key "${var.priv_key}"  -e 'pub_key="${var.pub_key}"' ansible/deploy-monitor.yml"
-  }
 }
 
 /**
@@ -56,5 +40,5 @@ resource "digitalocean_record" "www" {
   domain = "francrodriguez.com"
   type   = "A"
   name   = "monitor"
-  value  = digitalocean_droplet.node.0.ipv4_address
+  value  = digitalocean_droplet.monitor.ipv4_address
 }
